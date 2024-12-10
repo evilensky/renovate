@@ -82,6 +82,18 @@ describe('workers/repository/finalize/prune', () => {
       expect(platform.updatePr).toHaveBeenCalledTimes(1);
     });
 
+    it('ignores custom onboarding branch', async () => {
+      config.onboardingBranch = 'renovate-configure';
+      config.branchList = ['renovate/a'];
+      git.getBranchList.mockReturnValueOnce(
+        config.branchList.concat(['renovate-configure']),
+      );
+      await cleanup.pruneStaleBranches(config, config.branchList);
+      expect(git.getBranchList).toHaveBeenCalledTimes(1);
+      expect(scm.deleteBranch).toHaveBeenCalledTimes(0);
+      expect(platform.updatePr).toHaveBeenCalledTimes(0);
+    });
+
     it('deletes with base branches', async () => {
       config.branchList = ['renovate/main-a'];
       config.baseBranches = ['main', 'maint/v7'];
